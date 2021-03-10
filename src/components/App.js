@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import Web3 from 'web3';
-import logo from '../logo.png';
 import './App.css';
+import Color from '../abis/Color.json' // need to import the specific smart contract abi to use it
 
 class App extends Component {
 
@@ -26,7 +26,19 @@ class App extends Component {
     //load account:
     const accounts = await web3.eth.getAccounts() // getting the accounts from Metamask
     this.setState({ account: accounts[0] }) // storing the first account received into the App State
-
+    // get data from the smart contract to be able to show it on website:
+    const networkId = await web3.eth.net.getId() // need it to find the right abi / address in abi files
+    const networkData = Color.networks[networkId] // that fetches appropriate data from abi file
+    
+    if (networkData) {
+      const abi = Color.abi // getting the abi from the abi file Color
+      const address = networkData.address
+      const contract = new web3.eth.Contract(abi, address) // you need abi and address to get the data of smart contract
+      console.log(contract)
+    } else {  // else it means smart contract is not deployed to this network so can't use it
+              // means app only deployed on network where app actually exists
+      window.alert('Smart contract not deployed to detected network.')
+    }
   }
   // constructor from React 
   constructor(props) {
@@ -59,28 +71,15 @@ class App extends Component {
           <div className="row">
             <main role="main" className="col-lg-12 d-flex text-center">
               <div className="content mr-auto ml-auto">
-                <a
-                  href="http://www.dappuniversity.com/bootcamp"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <img src={logo} className="App-logo" alt="logo" />
-                </a>
-                <h1>Dapp University Starter Kit</h1>
-                <p>
-                  Edit <code>src/components/App.js</code> and save to reload.
-                </p>
-                <a
-                  className="App-link"
-                  href="http://www.dappuniversity.com/bootcamp"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  LEARN BLOCKCHAIN <u><b>NOW! </b></u>
-                </a>
+
               </div>
             </main>
           </div>
+          <table>
+            <div className="row text-center">
+              <p>Tokens go here...</p>
+            </div>
+          </table>
         </div>
       </div>
     );
