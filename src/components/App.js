@@ -1,8 +1,42 @@
 import React, { Component } from 'react';
+import Web3 from 'web3';
 import logo from '../logo.png';
 import './App.css';
 
 class App extends Component {
+
+  async componentWillMount() { // React lifecycle method: always triggered when gets attached to DOM successfully
+    await this.loadWeb3() // will trigger on reload, i.e. => Web3.js => connects to Metamask
+    await this.loadBlockchainData()
+  }
+
+  //loading Web3
+  async loadWeb3() {
+    // Modified to update according to post https://awantoch.medium.com/how-to-connect-web3-js-to-metamask-in-2020-fee2b2edf58a
+    if (window.ethereum) {
+      window.web3 = new Web3(window.ethereum);
+      window.ethereum.enable();
+      return true;
+    }
+    return false;
+  }
+
+  async loadBlockchainData() { // fetch the smart contract and make sure that it's connected
+    const web3 = window.web3
+    //load account:
+    const accounts = await web3.eth.getAccounts() // getting the accounts from Metamask
+    this.setState({ account: accounts[0] }) // storing the first account received into the App State
+
+  }
+  // constructor from React 
+  constructor(props) {
+    // code from React to set the default state:
+    super(props);
+    this.state = {
+      account: ''
+    };
+  }
+
   render() {
     return (
       <div>
@@ -13,8 +47,13 @@ class App extends Component {
             target="_blank"
             rel="noopener noreferrer"
           >
-            Dapp University
+            Color Tokens
           </a>
+          <ul className="navbar-nav px-3">
+            <li className="nav-item text-nowrap d-none d-sm-none d-sm-block">
+              <small className="text-white"><span id="account">{this.state.account}</span></small>
+            </li>
+          </ul>
         </nav>
         <div className="container-fluid mt-5">
           <div className="row">

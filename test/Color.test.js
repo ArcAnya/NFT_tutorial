@@ -53,8 +53,31 @@ contract('Color', (accounts) => {
             assert.equal(event.tokenId.toNumber(), 1, 'id is correct')
             assert.equal(event.from, '0x0000000000000000000000000000000000000000', 'from is correct') // first minted = from first = from empty address!
             assert.equal(event.to, accounts[0], 'to is correct') // accounts from Ganache, here checking that it goes to first Ganache accounts
+            // FAILURE: cannot mint same color twice
+            await contract.mint('#EC058E').should.be.rejected;
         })
 
+    })
+
+    describe('indexing', async () => {
+        it('lists colors', async () => {
+            // Mint 3 tokens
+            await contract.mint('#5386E4')
+            await contract.mint('#FFFFFF')
+            await contract.mint('#000000')
+            const totalSupply = await contract.totalSupply()
+
+            let color
+            let result = []
+
+            for (var i = 1; i <= totalSupply; i++) {
+                color = await contract.colors(i - 1)
+                result.push(color)
+            }
+
+            let expected = ['#EC058E', '#5386E4', '#FFFFFF', '#000000']
+            assert.equal(result.join(','), expected.join(','))
+        })
     })
 
 })
