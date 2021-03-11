@@ -15,7 +15,7 @@ class App extends Component {
     // Modified to update according to post https://awantoch.medium.com/how-to-connect-web3-js-to-metamask-in-2020-fee2b2edf58a
     if (window.ethereum) {
       window.web3 = new Web3(window.ethereum);
-      window.ethereum.enable();
+      await window.ethereum.enable();
       return true;
     }
     return false;
@@ -29,23 +29,45 @@ class App extends Component {
     // get data from the smart contract to be able to show it on website:
     const networkId = await web3.eth.net.getId() // need it to find the right abi / address in abi files
     const networkData = Color.networks[networkId] // that fetches appropriate data from abi file
-    
+
     if (networkData) {
       const abi = Color.abi // getting the abi from the abi file Color
       const address = networkData.address
       const contract = new web3.eth.Contract(abi, address) // you need abi and address to get the data of smart contract
-      console.log(contract)
+      this.setState({ contract })
+      const totalSupply = await contract.methods.totalSupply().call() // you .call when want to read from Blockchain vs. .send when want to add colors
+      this.setState({ totalSupply })
+      // load Colors
+      for (var i = 1; i <= totalSupply; i++) {
+        const color = await contract.methods.colors(i - 1).call() // syntax slightly different than in test because here we are using Web3
+        this.setState({ colors: [...this.state.colors, color] }) // makes a copy of the previous array with the "color" value appended to it
+      }
     } else {  // else it means smart contract is not deployed to this network so can't use it
-              // means app only deployed on network where app actually exists
+      // means app only deployed on network where app actually exists
       window.alert('Smart contract not deployed to detected network.')
     }
   }
+
+  // create mint function to mint on the blockchain
+  mint = (color) => {
+    this.state.contract.methods.mint(color).send({ from: this.state.account }) // using send to do transaction on the Blockchain
+    // Note: always need to give "from whom"
+    .once('receipt', (receipt) => {
+      this.setState({
+        colors: [...this.state.colors, color]
+      })
+    })
+  }
+
   // constructor from React 
   constructor(props) {
     // code from React to set the default state:
     super(props);
     this.state = {
-      account: ''
+      account: '',
+      contract: null,
+      totalSupply: 0,
+      colors: []
     };
   }
 
@@ -71,13 +93,36 @@ class App extends Component {
           <div className="row">
             <main role="main" className="col-lg-12 d-flex text-center">
               <div className="content mr-auto ml-auto">
-
+                <h1>Issue Token</h1>
+                <form onSubmit={(event) => {
+                  event.preventDefault()
+                  const color = this.color.value
+                  this.mint(color)
+                }}>
+                  <input
+                    type='text'
+                    className='form-control mb-1'
+                    placeholder='e.g. #FFFFFF'
+                    ref={(input) => { this.color = input }}
+                  />
+                  <input
+                    type='submit'
+                    className='btn btn-block btn-primary'
+                    value='MINT'
+                  />
+                </form>
               </div>
             </main>
           </div>
           <table>
             <div className="row text-center">
-              <p>Tokens go here...</p>
+              {this.state.colors.map((color, key) => {
+                return (<div key={key} className="col-md-3 mb-3">
+                  <div className="token" style={{ backgroundColor: color }}></div>
+                  <div>{color}</div>
+                </div>
+                )
+              })}
             </div>
           </table>
         </div>
