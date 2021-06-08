@@ -1,6 +1,4 @@
-This project is an intent to build a first very simple DApp minting NFTs on the Ethereum Blockchain using Solidity, combined with a VueJS frontend.
-
-It is mostly inspired from a tutorial from Dapp University (https://github.com/dappuniversity/nft) adapting it to the latest versions of Solidity, Truffle, Ganache and changing the React Frontend with VueJS.
+This project is an simply reproducing the steps from a tutorial from Dapp University (https://github.com/dappuniversity/nft).
 
 FRONTEND
 
